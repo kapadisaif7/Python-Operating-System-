@@ -7,6 +7,8 @@ import matplotlib
 from matplotlib import pyplot as plt
 from PIL import Image, ImageTk
 from tkinter import filedialog
+import pygame as pg
+from random import randrange
 Lapy = Tk()
 Lapy.title("Lapy")
 Lapy.geometry("800x492+0+0")
@@ -292,9 +294,9 @@ def FM():
     fm.title("file manager")
     fm.geometry("300x350+805+1")
 def store():
-        store=TopLevel(Lapy)
+        store=Toplevel(Lapy)
         store.title("LaStore")
-        storegeometry("300x350+805+1")
+        store.geometry("300x350+805+1")
 def Book():
     book= Toplevel(Lapy)
     book.title("Book")
@@ -413,6 +415,72 @@ def start():
         start=Toplevel(Lapy)
         start.title("start")
         start.geometry("300x400")
+def snakeio():
+        window = 600
+        tile_size = 50
+        range_ = (tile_size // 2, window - tile_size // 2, tile_size)
+        get_random_position = lambda: [randrange(*range_), randrange(*range_)]
+        snake = pg.Rect(0, 0, tile_size - 2, tile_size - 2)
+        snake.center = get_random_position()
+        length = 1
+        segments = [snake.copy()]
+        snake_dir = (0, 0)
+        food = pg.Rect(0, 0, tile_size - 2, tile_size - 2)
+        food.center = get_random_position()
+        time, time_step = 0, 110
+        pg.init()
+        screen = pg.display.set_mode((window, window))
+        clock = pg.time.Clock()
+        dirs = {
+            pg.K_UP: True,
+            pg.K_DOWN: True,
+            pg.K_LEFT: True,
+            pg.K_RIGHT: True
+        }
+        while True:
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    pg.quit()
+                    exit()
+                if event.type == pg.KEYDOWN:
+                    if event.key == pg.K_UP and dirs[pg.K_UP]:
+                        snake_dir = (0, -tile_size)
+                        dirs = {pg.K_UP: True, pg.K_DOWN: False, pg.K_LEFT: True, pg.K_RIGHT: True}
+                    elif event.key == pg.K_DOWN and dirs[pg.K_DOWN]:
+                        snake_dir = (0, tile_size)
+                        dirs = {pg.K_UP: False, pg.K_DOWN: True, pg.K_LEFT: True, pg.K_RIGHT: True}
+                    elif event.key == pg.K_LEFT and dirs[pg.K_LEFT]:
+                        snake_dir = (-tile_size, 0)
+                        dirs = {pg.K_UP: True, pg.K_DOWN: True, pg.K_LEFT: True, pg.K_RIGHT: False}
+                    elif event.key == pg.K_RIGHT and dirs[pg.K_RIGHT]:
+                        snake_dir = (tile_size, 0)
+                        dirs = {pg.K_UP: True, pg.K_DOWN: True, pg.K_LEFT: False, pg.K_RIGHT: True}
+            time_now = pg.time.get_ticks()
+            if time_now - time > time_step:
+                time = time_now
+                snake.move_ip(snake_dir)
+                segments.append(snake.copy())
+                segments = segments[-length:]
+            self_eating = any(snake.colliderect(segment) for segment in segments[:-1])
+            if (
+                snake.left < 0 or snake.right > window or
+                snake.top < 0 or snake.bottom > window or
+                self_eating
+                ):
+                snake.center = get_random_position()
+                food.center = get_random_position()
+                length = 1
+                snake_dir = (0, 0)
+                segments = [snake.copy()]
+            if snake.center == food.center:
+                food.center = get_random_position()
+                length += 1 
+            screen.fill('black')
+            pg.draw.rect(screen, 'red', food)
+            for segment in segments:
+                pg.draw.rect(screen, 'green', segment)
+            pg.display.flip()
+            clock.tick(60)
 image1=Image.open(r'C:\Users\Saeem\Downloads\lapic.jpg')
 resize1=image1.resize((60,60))
 bgimg1=ImageTk.PhotoImage(resize1)
@@ -440,7 +508,11 @@ FileManager=Button(Lapy,text="File Manager",image=bgimg5,width=50,height=50,font
 image6=Image.open(r'D:\Saif.Python\python\Images\store.jpg')
 resize6=image6.resize((60,60))
 bgimg6=ImageTk.PhotoImage(resize6)
-LaStore=Button(Lapy,text="Lastore",image=bgimg6,width=50,height=50,font=("Arial",70),command=store).place(x=192,y=120)
+LaStore=Button(Lapy,text="Lastore",image=bgimg6,width=50,height=50,font=("Arial",70),command=store).place(x=20,y=220)
+image7=Image.open(r'D:\Saif.Python\python\Images\snakio.png')
+resize7=image7.resize((60,60))
+bgimg7=ImageTk.PhotoImage(resize7)
+LaStore=Button(Lapy,text="Snake.io",image=bgimg7,width=50,height=50,font=("Arial",70),command=snakeio).place(x=110,y=220)
 OpenBtn=Button(Lapy,text="start",font=("Arial",7),bg="red",fg="white",command=start).place(x=10,y=462)
 OffButton=Button(Lapy,text="🔌",font=("Arial",7),bg="blue",fg="white",command=Lapy.destroy).place(x=50,y=462)
 Lapy.mainloop()
