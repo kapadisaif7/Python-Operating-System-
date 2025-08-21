@@ -1,1 +1,1 @@
-#  Python operating ssytem
+#  Python operating system
